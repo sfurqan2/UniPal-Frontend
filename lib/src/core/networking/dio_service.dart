@@ -7,6 +7,7 @@ import './custom_exception.dart';
 
 // Helpers
 import '../../helpers/typedefs.dart';
+import 'api_response.dart';
 
 /// A service class that wraps the [Dio] instance and provides methods for
 /// basic network requests.
@@ -25,14 +26,18 @@ class DioService {
   /// [Interceptor]s to the underlying [_dio] client.
   /// * [httpClientAdapter]: Replaces the underlying [HttpClientAdapter] with
   /// this custom one.
+  /// * [transformer]: Replaces the underlying [Transformer] with this custom one.
+  /// Uses the [DefaultTransformer] as the default one.
   DioService({
     required Dio dioClient,
     Iterable<Interceptor>? interceptors,
     HttpClientAdapter? httpClientAdapter,
+    Transformer? transformer,
   })  : _dio = dioClient,
         _cancelToken = CancelToken() {
     if (interceptors != null) _dio.interceptors.addAll(interceptors);
     if (httpClientAdapter != null) _dio.httpClientAdapter = httpClientAdapter;
+    if (transformer != null) _dio.transformer = transformer;
   }
 
   /// This method invokes the [cancel()] method on either the input
@@ -46,8 +51,8 @@ class DioService {
     }
   }
 
-  /// This method sends a `GET` request to the [endpoint] and returns the
-  /// **decoded** response.
+  /// This method sends a `GET` request to the [endpoint] and returns 
+  /// an instance of the [ApiResponse] as the **decoded** response.
   ///
   /// Any errors encountered during the request are caught and a custom
   /// [CustomException] is thrown.
@@ -58,13 +63,13 @@ class DioService {
   /// the **default** [cancelToken] inside [DioService] is used.
   ///
   /// [options] are special instructions that can be merged with the request.
-  Future<JSON> get({
+  Future<ApiResponse<T>> get<T>({
     required String endpoint,
     JSON? queryParams,
     Options? options,
     CancelToken? cancelToken,
   }) async {
-    final response = await _dio.get<JSON>(
+    final response = await _dio.get<ApiResponse<T>>(
       endpoint,
       queryParameters: queryParams,
       options: options,
@@ -73,8 +78,8 @@ class DioService {
     return response.data!;
   }
 
-  /// This method sends a `POST` request to the [endpoint] and returns the
-  /// **decoded** response.
+  /// This method sends a `POST` request to the [endpoint] and returns 
+  /// an instance of the [ApiResponse] as the **decoded** response.
   ///
   /// Any errors encountered during the request are caught and a custom
   /// [CustomException] is thrown.
@@ -85,13 +90,13 @@ class DioService {
   /// the **default** [cancelToken] inside [DioService] is used.
   ///
   /// [options] are special instructions that can be merged with the request.
-  Future<JSON> post({
+  Future<ApiResponse<T>> post<T>({
     required String endpoint,
     JSON? data,
     Options? options,
     CancelToken? cancelToken,
   }) async {
-    final response = await _dio.post<JSON>(
+    final response = await _dio.post<ApiResponse<T>>(
       endpoint,
       data: data,
       options: options,
@@ -100,8 +105,8 @@ class DioService {
     return response.data!;
   }
 
-  /// This method sends a `PATCH` request to the [endpoint] and returns the
-  /// **decoded** response.
+  /// This method sends a `PATCH` request to the [endpoint] and returns 
+  /// an instance of the [ApiResponse] as the **decoded** response.
   ///
   /// Any errors encountered during the request are caught and a custom
   /// [CustomException] is thrown.
@@ -112,13 +117,13 @@ class DioService {
   /// the **default** [cancelToken] inside [DioService] is used.
   ///
   /// [options] are special instructions that can be merged with the request.
-  Future<JSON> patch({
+  Future<ApiResponse<T>> patch<T>({
     required String endpoint,
     JSON? data,
     Options? options,
     CancelToken? cancelToken,
   }) async {
-    final response = await _dio.put<JSON>(
+    final response = await _dio.put<ApiResponse<T>>(
       endpoint,
       data: data,
       options: options,
@@ -127,8 +132,8 @@ class DioService {
     return response.data!;
   }
 
-  /// This method sends a `DELETE` request to the [endpoint] and returns the
-  /// **decoded** response.
+  /// This method sends a `DELETE` request to the [endpoint] and returns 
+  /// an instance of the [ApiResponse] as the **decoded** response.
   ///
   /// Any errors encountered during the request are caught and a custom
   /// [CustomException] is thrown.
@@ -139,13 +144,13 @@ class DioService {
   /// the **default** [cancelToken] inside [DioService] is used.
   ///
   /// [options] are special instructions that can be merged with the request.
-  Future<JSON> delete({
+  Future<ApiResponse<T>> delete<T>({
     required String endpoint,
     JSON? data,
     Options? options,
     CancelToken? cancelToken,
   }) async {
-    final response = await _dio.delete<JSON>(
+    final response = await _dio.delete<ApiResponse<T>>(
       endpoint,
       data: data,
       options: options,

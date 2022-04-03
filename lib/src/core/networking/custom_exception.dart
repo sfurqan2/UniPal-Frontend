@@ -2,6 +2,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
+// Models
+import 'api_response.dart';
+
 /// An enum that holds names for our custom exceptions.
 enum _ExceptionType {
   /// The exception for an expired bearer token.
@@ -81,9 +84,16 @@ class CustomException implements Exception {
                 message: 'No internet connectivity',
               );
             }
-            final name = error.response?.data['headers']['code'] as String;
-            final message =
-                error.response?.data['headers']['message'] as String;
+            String name, message;
+            if (error.response?.data is ApiResponse) {
+              final res = error.response?.data as ApiResponse;
+              name = res.headers.code!;
+              message = res.headers.message;
+            } else {
+              // TODO(arafaysaleem): remove else clause if ApiResponse
+              name = error.response?.data['headers']['code'] as String;
+              message = error.response?.data['headers']['message'] as String;
+            }
             if (name == _ExceptionType.TokenExpiredException.name) {
               return CustomException(
                 exceptionType: _ExceptionType.TokenExpiredException,

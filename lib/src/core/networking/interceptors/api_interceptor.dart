@@ -1,6 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+// Models
+import '../api_response.dart';
+
 /// A class that holds intercepting logic for API related requests. This is
 /// the first interceptor in case of both request and response.
 ///
@@ -35,10 +38,11 @@ class ApiInterceptor extends Interceptor {
     RequestInterceptorHandler handler,
   ) async {
     if (options.headers.containsKey('requiresAuthToken')) {
-      if(options.headers['requiresAuthToken'] == true){
+      if (options.headers['requiresAuthToken'] == true) {
         // final token = await _ref.read(keyValueStorageServiceProvider).getAuthToken();
         const token = 'CHANGE ME';
-        options.headers.addAll(<String, Object?>{'Authorization': 'Bearer $token'});
+        options.headers
+            .addAll(<String, Object?>{'Authorization': 'Bearer $token'});
       }
 
       options.headers.remove('requiresAuthToken');
@@ -76,11 +80,18 @@ class ApiInterceptor extends Interceptor {
     Response response,
     ResponseInterceptorHandler handler,
   ) {
-    final success = response.data['headers']['error'] == 0;
+    bool success;
+    if (response.data is ApiResponse) {
+      // TODO(arafaysaleem): print and check if response.data is ApiResponse or not
+      success = (response.data as ApiResponse).isSuccess;
+    } else {
+      // Remove this if the response.data is ApiResponse
+      success = response.data['headers']['error'] == 0;
+    }
 
     if (success) return handler.next(response);
 
-    //Reject all error codes from server except 402 and 200 OK
+    // Reject all error codes from server except 402 and 200 OK
     return handler.reject(
       DioError(
         requestOptions: response.requestOptions,

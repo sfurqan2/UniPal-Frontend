@@ -10,6 +10,9 @@ import './dio_service.dart';
 // Helpers
 import '../../helpers/typedefs.dart';
 
+// Models
+import 'api_response.dart';
+
 /// A service class implementing methods for basic API requests.
 class ApiService implements ApiInterface {
   /// An instance of [DioService] for network requests
@@ -44,11 +47,11 @@ class ApiService implements ApiInterface {
     bool requiresAuthToken = true,
     required T Function(JSON responseBody) converter,
   }) async {
-    List<Object?> body;
+    ApiResponse<List<Object?>> response;
 
     try {
       // Entire map of response
-      final data = await _dioService.get(
+      response = await _dioService.get<List<Object?>>(
         endpoint: endpoint,
         options: Options(
           headers: <String, Object?>{
@@ -58,16 +61,14 @@ class ApiService implements ApiInterface {
         queryParams: queryParams,
         cancelToken: cancelToken,
       );
-
-      // Items of table as json
-      body = data['body'] as List<Object?>;
     } on Exception catch (ex) {
       throw CustomException.fromDioException(ex);
     }
 
     try {
       // Returning the deserialized objects
-      return body.map((dataMap) => converter(dataMap! as JSON)).toList();
+      final jsonObjects = response.body;
+      return jsonObjects.map((dataMap) => converter(dataMap! as JSON)).toList();
     } on Exception catch (ex) {
       throw CustomException.fromParsingException(ex);
     }
@@ -98,10 +99,10 @@ class ApiService implements ApiInterface {
     bool requiresAuthToken = true,
     required T Function(JSON responseBody) converter,
   }) async {
-    JSON body;
+    ApiResponse<JSON> response;
     try {
       // Entire map of response
-      final data = await _dioService.get(
+      response = await _dioService.get<JSON>(
         endpoint: endpoint,
         queryParams: queryParams,
         options: Options(
@@ -111,15 +112,13 @@ class ApiService implements ApiInterface {
         ),
         cancelToken: cancelToken,
       );
-
-      body = data['body'] as JSON;
     } on Exception catch (ex) {
       throw CustomException.fromDioException(ex);
     }
 
     try {
       // Returning the deserialized object
-      return converter(body);
+      return converter(response.body);
     } on Exception catch (ex) {
       throw CustomException.fromParsingException(ex);
     }
@@ -149,11 +148,11 @@ class ApiService implements ApiInterface {
     bool requiresAuthToken = true,
     required T Function(JSON response) converter,
   }) async {
-    JSON dataMap;
+    ApiResponse<JSON> response;
 
     try {
       // Entire map of response
-      dataMap = await _dioService.post(
+      response = await _dioService.post<JSON>(
         endpoint: endpoint,
         data: data,
         options: Options(
@@ -169,7 +168,7 @@ class ApiService implements ApiInterface {
 
     try {
       // Returning the serialized object
-      return converter(dataMap);
+      return converter(response.body);
     } on Exception catch (ex) {
       throw CustomException.fromParsingException(ex);
     }
@@ -199,11 +198,11 @@ class ApiService implements ApiInterface {
     bool requiresAuthToken = true,
     required T Function(JSON response) converter,
   }) async {
-    JSON dataMap;
+    ApiResponse<JSON> response;
 
     try {
       // Entire map of response
-      dataMap = await _dioService.patch(
+      response = await _dioService.patch<JSON>(
         endpoint: endpoint,
         data: data,
         options: Options(
@@ -219,7 +218,7 @@ class ApiService implements ApiInterface {
 
     try {
       // Returning the serialized object
-      return converter(dataMap);
+      return converter(response.body);
     } on Exception catch (ex) {
       throw CustomException.fromParsingException(ex);
     }
@@ -249,11 +248,11 @@ class ApiService implements ApiInterface {
     bool requiresAuthToken = true,
     required T Function(JSON response) converter,
   }) async {
-    JSON dataMap;
+    ApiResponse<JSON> response;
 
     try {
       // Entire map of response
-      dataMap = await _dioService.delete(
+      response = await _dioService.delete<JSON>(
         endpoint: endpoint,
         data: data,
         options: Options(
@@ -269,7 +268,7 @@ class ApiService implements ApiInterface {
 
     try {
       // Returning the serialized object
-      return converter(dataMap);
+      return converter(response.body);
     } on Exception catch (ex) {
       throw CustomException.fromParsingException(ex);
     }

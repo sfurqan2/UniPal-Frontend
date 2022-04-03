@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // Services
 import '../../core/networking/api_endpoint.dart';
+import '../../core/networking/api_response.dart';
 import '../../core/networking/api_service.dart';
 import '../../core/networking/dio_service.dart';
 
@@ -37,6 +38,9 @@ final _dioServiceProvider = Provider<DioService>((ref) {
       if (kDebugMode) LoggingInterceptor(),
       RefreshTokenInterceptor(dioClient: _dio, ref: ref)
     ],
+    transformer: DefaultTransformer(
+      jsonDecodeCallback: ApiResponse.fromStringResponse,
+    ),
   );
 });
 

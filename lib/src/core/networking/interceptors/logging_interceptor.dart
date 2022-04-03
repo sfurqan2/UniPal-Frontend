@@ -3,8 +3,11 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 
-//helpers
+// Helpers
 import '../../../helpers/typedefs.dart';
+
+// Models
+import '../api_response.dart';
 
 /// A class that intercepts network requests for logging purposes only. This is
 /// the second interceptor in case of both request and response.
@@ -12,7 +15,6 @@ import '../../../helpers/typedefs.dart';
 /// ** This interceptor doesn't modify the request or response in any way. And
 /// only works in `debug` mode **
 class LoggingInterceptor extends Interceptor {
-
   /// This method intercepts an out-going request before it reaches the
   /// destination.
   ///
@@ -44,9 +46,10 @@ class LoggingInterceptor extends Interceptor {
     debugPrint('\tHeaders:');
     options.headers.forEach((k, Object? v) => debugPrint('\t\t$k: $v'));
 
-    if(options.queryParameters.isNotEmpty){
+    if (options.queryParameters.isNotEmpty) {
       debugPrint('\tqueryParams:');
-      options.queryParameters.forEach((k, Object? v) => debugPrint('\t\t$k: $v'));
+      options.queryParameters
+          .forEach((k, Object? v) => debugPrint('\t\t$k: $v'));
     }
 
     if (options.data != null) {
@@ -80,7 +83,6 @@ class LoggingInterceptor extends Interceptor {
     Response response,
     ResponseInterceptorHandler handler,
   ) {
-
     debugPrint('<-- RESPONSE');
 
     debugPrint('\tStatus code:${response.statusCode}');
@@ -120,31 +122,41 @@ class LoggingInterceptor extends Interceptor {
     ErrorInterceptorHandler handler,
   ) {
     debugPrint('--> ERROR');
-    if(dioError.response != null){
+    if (dioError.response != null) {
       debugPrint('\tStatus code: ${dioError.response!.statusCode}');
-      if(dioError.response!.data != null){
-        final headers = dioError.response!.data['headers'] as JSON; //API Dependant
-        final message = headers['message'] as String; //API Dependant
-        final code = headers['code'] as String; //API Dependant
-        debugPrint('\tException: $code');
-        debugPrint('\tMessage: $message');
-        if(headers.containsKey('data')){ //API Dependant
-          final data = headers['data'] as List<Object?>;
-          if(data.isNotEmpty) {
-            debugPrint('\tData: $data');
+      if (dioError.response!.data != null) {
+        String message, code;
+        List<Object?>? data;
+        if (dioError.response!.data is ApiResponse) {
+          // TODO(arafaysaleem): check if it ApiResponse
+          final res = dioError.response!.data as ApiResponse;
+          message = res.headers.message;
+          code = res.headers.code!;
+          data = res.headers.data;
+        } else {
+          // TODO(arafaysaleem): remove else clause if ApiResponse
+          final headers =
+              dioError.response!.data['headers'] as JSON; //API Dependant
+          message = headers['message'] as String; //API Dependant
+          code = headers['code'] as String; //API Dependant
+          if (headers.containsKey('data')) {
+            //API Dependant
+            data = headers['data'] as List<Object?>;
           }
         }
-      }
-      else {
+        debugPrint('\tException: $code');
+        debugPrint('\tMessage: $message');
+        if (data != null && data.isNotEmpty) {
+          debugPrint('\tData: $data');
+        }
+      } else {
         debugPrint('${dioError.response!.data}');
       }
-    }
-    else if(dioError.error is SocketException){
+    } else if (dioError.error is SocketException) {
       const message = 'No internet connectivity';
       debugPrint('\tException: FetchDataException');
       debugPrint('\tMessage: $message');
-    }
-    else {
+    } else {
       debugPrint('\tUnknown Error');
     }
 

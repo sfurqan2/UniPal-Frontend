@@ -49,6 +49,7 @@ class RefreshTokenInterceptor extends Interceptor {
   ) async {
     if (dioError.response != null) {
       if (dioError.response!.data != null) {
+        // TODO(arafaysaleem): replace with ApiResponse impl
         final headers = dioError.response!.data['headers'] as JSON;
 
         // Check error type to be token expired error
@@ -85,7 +86,7 @@ class RefreshTokenInterceptor extends Interceptor {
             ..clear();
 
           // Make original req with new token
-          final response = await _dio.request<JSON>(
+          final response = await _dio.request<Object?>(
             dioError.requestOptions.path,
             data: dioError.requestOptions.data,
             cancelToken: dioError.requestOptions.cancelToken,
